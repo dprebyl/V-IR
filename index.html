@@ -7,6 +7,30 @@
 		<script type="text/javascript" src="script.js"></script>
 	</head>
 	<body>
-		<h1>Hello, World!</h1>
+		<div id="left-col">
+			<fieldset>
+				<legend>Environment</legend>
+				Time: <span id="gameTime"></span><br>
+				Season: <br>
+				Weather: <br>
+			</fieldset>
+		</div><div id="center-col">
+			<canvas id="board"></canvas>
+		</div><div id="right-col">
+			Generation:
+			<ul>
+				<li>Coal</li>
+				<li>Natural Gas</li>
+				<li>Solar</li>
+				<li>Wind</li>
+				<li>Battery</li>
+			</ul>
+			Distribution:
+			<ul>
+				<li>Substation</li>
+				<li>High voltage line</li>
+				<li>Low voltage line</li>
+			</ul>
+		</div>
 	</body>
 </html>
