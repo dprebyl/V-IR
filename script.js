@@ -1,6 +1,6 @@
 // Timing
 var gameTime = 0; // Incremental counter of seconds of game time passed
-var gameRate = 1; // How many game second pass per real second (can be changed by user)
+var gameRate = 1; // How many real second pass per game second
 
 // Board layout
 const GRID_SIZE = 60;
@@ -37,7 +37,6 @@ var grid = {
 				grid.cells[y][x] = {type: VACANT, powerLevel: 0};
 			}
 		}
-		
 	},
 	getCellType: (x, y) => grid.cells[y][x].type,
 	setCellType: (x, y, val) => { grid.cells[y][x].type = val; },
@@ -74,6 +73,12 @@ window.addEventListener("DOMContentLoaded", (event) => {
 	drawGrid();
 	prevTick = Date.now();
     tick();
+	
+	// Testing
+	placeBuilding(0, 0, GENERATOR);
+	placeBuilding(2, 3, HOUSE);
+	startPole(0, 0);
+	clickCell(2, 3);
 });
 
 function statusMsg(msg) {
@@ -108,7 +113,7 @@ function clickCell(x, y) {
 
 function showBuildingInfo(x, y, type) {
 	var output = "Building type: " + BUILDING_NAMES[type];
-	output += "<br>Power level: " + grid.cells[y][x].powerLevel + "/" + POWER_CAPS[type];
+	output += "<br>Power level: " + grid.cells[y][x].powerLevel + "/" + POWER_CAPS[type] + " V";
 	if (type == VACANT) {
 		output += "<br><input type='button' value='Add generator' onclick='placeBuilding("+x+", "+y+", "+GENERATOR+")'>";
 		output += "<br><input type='button' value='Add substation' onclick='placeBuilding("+x+", "+y+", "+SUBSTATION+")'>";
@@ -121,7 +126,7 @@ function showBuildingInfo(x, y, type) {
 
 function placeBuilding(x, y, type) {
 	grid.setCellType(x, y, type);
-	if (type == GENERATOR) {
+	if (type == GENERATOR || type == SUBSTATION) {
 		grid.cells[y][x].poles = [];
 	}
 	showBuildingInfo(x, y, type);
@@ -178,33 +183,68 @@ function tick() {
 	gameTime++;
 	document.querySelector("#gameTime").innerText = gameTime;
 	if (Math.random() > .8) spreadHouses();
-	distributeElectricity();
+	
 	setTimeout(tick, (1000-(Date.now()-tickStart))*gameRate);
+	
 	grid.forEachCell((cell, x, y) => {
-		if(cell.type == GENERATOR){
-			grid.cells[y][x].powerLevel=1000;
-			for(var i=0; i< cell.poles.length; i++){
-				grid.getPowerPercent(x, y);
-			}	
+		if (cell.type == GENERATOR) {
+			cell.powerLevel = POWER_CAPS[GENERATOR];
+			//distributeElectricity(x, y);
 		}
-	})
+	});
 }
 
 function distance(x1, y1, x2, y2){
-	return( Math.sqrt(Math.pow((x1-x2),2) + Math.pow((y1-y2),2)));
+	return(Math.sqrt(Math.pow((x1-x2),2) + Math.pow((y1-y2),2)));
 }
 
 function resistance(x1, y1, x2, y2){
-	return(distance(x1, y1, x2, y2)*LINE_RESISTANCE[grid.cell[y2][x2]]);
+	return(distance(x1, y1, x2, y2)*LINE_RESISTANCE[grid.cells[y2][x2]]);
 }
 
-function distributeElectricity() {
-	// Go to each generator and set power to 1000
-	
+function distributeElectricity(x, y) {
 	// Follow each line from the generator and distribute to buildings most in need by % of cap
 	// Calculate resistance during distribution (better for gen->sub, worse for sub->house)
 	// Repeat at substations
-	// Caps: 1000 at gen, 100 at sub, 10 at house
+	
+	var powerLeft = grid.cells[y][x].powerLevel;
+	
+	var lineEnds = grid.cells[y][x].poles;
+	// Sort lineEnds by power percent of each building
+	lineEnds.sort((coords1, coords2) => {
+		grid.getPowerPercent(coords1[0], coords1[1]) - grid.getPowerPercent(coords2[0], coords2[1]);
+	});
+	
+	for (var end = 1; end < lineEnds.length+1; end++) {
+		// The percent of power the next node in the list has (or 100% if at end of list)
+		var nextEndPower = (end == lineEnds.length ? 1 : grid.getPowerPercent(lineEnds[end][0], lineEnds[end][1]));
+		
+		for (var i = 0; i < end; i++) {
+			// Calculate resistance and give the amount of power required to make powerLevel of i == powerLevel of i+1
+			var lineResistance = resistance(x, y, lineEnds[i][0], lineEnds[i][1]);
+			
+			// The power cap of the building at the end of the current line
+			var cap = POWER_CAPS[grid.cells[lineEnds[i][0]][lineEnds[i][1]]];
+			
+			// The difference in power level percent between this node and the next node
+			var powerPercentDelta = nextEndPower - grid.getPowerPercent(lineEnds[i][0], lineEnds[i][1]);
+			
+			// The amount of powerLevel required to increase the percent of the current node to that of the next (including resistance)
+			var powerRequired = powerPercentDelta*cap / (1-lineResistance);
+			
+			// Send as much power as we need, up to the max amount we can
+			var powerToSend = Math.min(powerRequired, powerLeft);
+			
+			// Actually send the power
+			powerLeft -= powerToSend;
+			grid.cells[lineEnds[i][0]][lineEnds[i][1]].powerLevel += powerToSend * (1-lineResistance);
+
+			console.log(nextEndPower, lineResistance, cap, powerPercentDelta, powerRequired, powerToSend, powerLeft);
+		}
+	}
+	
+	grid.cells[y][x].powerLevel = powerLeft;
+	
 }
 
 function spreadHouses() {
