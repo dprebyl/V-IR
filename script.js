@@ -18,6 +18,9 @@ const SUBSTATION = 3;
 const BUILDING_NAMES = ["Empty lot", "House", "Power generator", "Power substation"];
 const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
 const POWER_CAPS = [0, 10, 1000, 100];
+const LINE_RESISTANCE = [1, .05, 1, .02];
+const LINE_COLOR = [ "black", "black", "yellow", "orange"];
+const LINE_SIZE = [1, 1, 7, 5];
 
 // Random generation
 const MAX_SPREAD_DISTANCE = 10;
@@ -45,6 +48,7 @@ var grid = {
 			}
 		}
 	},
+	getPowerPercent: (x, y) => grid.cells[y][x].powerLevel/POWER_CAPS[grid.getCellType(x, y)],
 };
 
 window.addEventListener("DOMContentLoaded", (event) => {
@@ -149,8 +153,8 @@ function drawGrid() {
 				for(var i=0; i < grid.cells[y][x].poles.length; i++){
 				
 				ctx.beginPath();
-				ctx.lineWidth = "5";
-				ctx.strokeStyle = "green";
+				ctx.lineWidth = LINE_SIZE[grid.getCellType(x, y)];
+				ctx.strokeStyle = LINE_COLOR[grid.getCellType(x, y)];
 				ctx.moveTo(((CELL_SIZE*x)+(CELL_SIZE/2)), ((CELL_SIZE*y)+(CELL_SIZE/2)));
 				ctx.lineTo(((CELL_SIZE*grid.cells[y][x].poles[i][0])+(CELL_SIZE/2)), ((CELL_SIZE*grid.cells[y][x].poles[i][1])+(CELL_SIZE/2)));
 				ctx.stroke();
@@ -176,10 +180,27 @@ function tick() {
 	if (Math.random() > .8) spreadHouses();
 	distributeElectricity();
 	setTimeout(tick, (1000-(Date.now()-tickStart))*gameRate);
+	grid.forEachCell((cell, x, y) => {
+		if(cell.type == GENERATOR){
+			grid.cells[y][x].powerLevel=1000;
+			for(var i=0; i< cell.poles.length; i++){
+				grid.getPowerPercent(x, y);
+			}	
+		}
+	})
+}
+
+function distance(x1, y1, x2, y2){
+	return( Math.sqrt(Math.pow((x1-x2),2) + Math.pow((y1-y2),2)));
+}
+
+function resistance(x1, y1, x2, y2){
+	return(distance(x1, y1, x2, y2)*LINE_RESISTANCE[grid.cell[y2][x2]]);
 }
 
 function distributeElectricity() {
 	// Go to each generator and set power to 1000
+	
 	// Follow each line from the generator and distribute to buildings most in need by % of cap
 	// Calculate resistance during distribution (better for gen->sub, worse for sub->house)
 	// Repeat at substations
