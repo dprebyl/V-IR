@@ -4,7 +4,7 @@ var gameRate = 1; // How many game second pass per real second (can be changed b
 
 // Board layout
 const GRID_SIZE = 100;
-const CELL_SIZE = 10;
+const CELL_SIZE = 16;
 var grid = [];
 var canvas;
 var ctx;
@@ -17,8 +17,17 @@ const HOUSE = 1;
 const MAX_SPREAD_DISTANCE = 10;
 
 window.addEventListener("DOMContentLoaded", (event) => {
+	var pixelRatio = window.devicePixelRatio;
+	
 	canvas = document.getElementById("board");
+	canvas.width = GRID_SIZE*CELL_SIZE;
+	canvas.height = GRID_SIZE*CELL_SIZE;
+	canvas.style.width = GRID_SIZE*CELL_SIZE/pixelRatio + "px";
+	canvas.style.height = GRID_SIZE*CELL_SIZE/pixelRatio + "px";
+	
 	ctx = canvas.getContext("2d");
+	//ctx.scale(1, 1);
+	
 	for (var y = 0; y < GRID_SIZE; y++) {
 		grid[y] = [];
 		for (var x = 0; x < GRID_SIZE; x++) {
@@ -40,8 +49,6 @@ function forEachCell(callback) {
 }
 
 function drawGrid() {
-	canvas.width = GRID_SIZE*CELL_SIZE;
-	canvas.height = GRID_SIZE*CELL_SIZE;
 	for (var y = 0; y < GRID_SIZE; y++) {
 		for (var x = 0; x < GRID_SIZE; x++) {
 			if (grid[y][x] == VACANT) drawSquare(x, y, "brown");
