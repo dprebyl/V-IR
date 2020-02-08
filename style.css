@@ -1,8 +1,43 @@
+* { box-sizing: border-box; }
+
+html, body {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
 body {
-	background: white;
-	color: black;
+	background: black;
+	color: white;
 }
 
 h1 {
 	font-size: 128px;
+}
+
+#left-col, #center-col, #right-col {
+	display: inline-block;
+	height: 100vh;
+	padding: 10px;
+	vertical-align: top;
+}
+
+#left-col {
+	width: 20vw;
+	background: red;
+}
+
+#center-col {
+	width: 60vw;
+	background: blue;
+	overflow: scroll;
+}
+
+#right-col {
+	width: 20vw;
+	background: green;
+}
+
+#board {
+
 }
