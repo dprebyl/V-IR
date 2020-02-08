@@ -13,8 +13,10 @@ var ctx;
 const VACANT = 0;
 const HOUSE = 1;
 const GENERATOR = 2;
-const BUILDING_NAMES = ["Empty lot", "House", "Power generator"];
-const BUILDING_COLORS = ["#80340b", "lime", "gray"];
+const SUBSTATION = 3;
+
+const BUILDING_NAMES = ["Empty lot", "House", "Power generator", "Power substation"];
+const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
 
 // Random generation
 const MAX_SPREAD_DISTANCE = 10;
@@ -69,29 +71,67 @@ window.addEventListener("DOMContentLoaded", (event) => {
     tick();
 });
 
+function statusMsg(msg) {
+	document.getElementById("status").innerText = msg;
+}
+
 function clickCell(x, y) {
 	var type = grid.getCellType(x, y);
 	if (placingPole !== false) {
-		grid.cells[placingPole[1]][placingPole[0]].poles.push([x, y]);
-		placingPole = false;
-		drawGrid();
+		if (grid.cells[y][x].type == VACANT) {
+			statusMsg("Power pole cannot connect to vacant cell.");
+		}
+		else if (x == placingPole[0] && y == placingPole[1]) {
+			statusMsg("Power pole cannot connect building to itself!");
+		}
+		else if (type == GENERATOR) {
+			statusMsg("Power poles cannot end at a generator (but they can start there).");
+		}
+		else {
+			grid.cells[placingPole[1]][placingPole[0]].poles.push([x, y]);
+			placingPole = false;
+			statusMsg("Power pole placed");
+			drawGrid();
+		}
 	}
 	else if (type == VACANT) {
-		grid.setCellType(x, y, GENERATOR);
 		grid.cells[y][x].poles = [];
 		drawGrid();
 	}
-	else {
-		var output = "Building type: " + BUILDING_NAMES[type];
-		if (type == GENERATOR) {
-			output += "<br><input type='button' value='Add power pole' onclick='startPole("+x+", "+y+")'>";
-		}
-		document.getElementById("buidingInfo").innerHTML = output;
+	showBuildingInfo(x, y, type);
+}
+
+function showBuildingInfo(x, y, type) {
+	var output = "Building type: " + BUILDING_NAMES[type];
+	if (type == VACANT) {
+		output += "<br><input type='button' value='Add generator' onclick='placeBuilding("+x+", "+y+", "+GENERATOR+")'>";
+		output += "<br><input type='button' value='Add substation' onclick='placeBuilding("+x+", "+y+", "+SUBSTATION+")'>";
 	}
+	else if (type == GENERATOR || type == SUBSTATION) {
+		output += "<br><input type='button' value='Add power pole' onclick='startPole("+x+", "+y+")'>";
+	}
+	document.getElementById("buidingInfo").innerHTML = output;
+}
+
+function placeBuilding(x, y, type) {
+	grid.setCellType(x, y, type);
+	if (type == GENERATOR) {
+		grid.cells[y][x].poles = [];
+	}
+	showBuildingInfo(x, y, type);
+	statusMsg("Placed " + BUILDING_NAMES[type]);
+	drawGrid();
 }
 
 function startPole(x, y) {
-	placingPole = [x, y];
+	if (placingPole === false) {
+		placingPole = [x, y];
+		statusMsg("Select endpoint of power pole");
+	}
+	else {
+		placingPole = false;
+		statusMsg("Pole placement canceled");
+	}
 }
 
 function drawGrid() {
