@@ -53,8 +53,8 @@ window.addEventListener("DOMContentLoaded", (event) => {
 	//ctx.scale(1, 1);
 	
 	canvas.addEventListener("click", (event) => {
-		var x = Math.floor(event.offsetX/16);
-		var y = Math.floor(event.offsetY/16);
+		var x = Math.floor(pixelRatio*event.offsetX/16);
+		var y = Math.floor(pixelRatio*event.offsetY/16);
 		grid.setCellType(x,y,GENERATOR);
 		drawGrid();
 	
