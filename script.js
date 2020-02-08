@@ -16,43 +16,53 @@ const HOUSE = 1;
 // Random generation
 const MAX_SPREAD_DISTANCE = 10;
 
+var grid = {
+	array: [],
+	init: () => {
+		for (var y = 0; y < GRID_SIZE; y++) {
+			grid.array[y] = []
+			for (var x = 0; x < GRID_SIZE; x++) {
+				grid.array[y][x] = {type: VACANT};
+			}
+		}
+		
+	},
+	getCellType: (x, y) => grid.array[y][x].type,
+	setCellType: (x, y, val) => { grid.array[y][x].type = val; },
+	forEachCell: callback => {
+		for (var y = 0; y < GRID_SIZE; y++) {
+			for (var x = 0; x < GRID_SIZE; x++) {
+				callback(grid.array[y][x], x, y);
+			}
+		}
+	},
+};
+
 window.addEventListener("DOMContentLoaded", (event) => {
-	var pixelRatio = window.devicePixelRatio;
-	
+	grid.init();
 	canvas = document.getElementById("board");
+	ctx = canvas.getContext("2d");
+	
+	// Make the canvas not look ugly
+	var pixelRatio = window.devicePixelRatio;
 	canvas.width = GRID_SIZE*CELL_SIZE;
 	canvas.height = GRID_SIZE*CELL_SIZE;
 	canvas.style.width = GRID_SIZE*CELL_SIZE/pixelRatio + "px";
 	canvas.style.height = GRID_SIZE*CELL_SIZE/pixelRatio + "px";
-	
-	ctx = canvas.getContext("2d");
 	//ctx.scale(1, 1);
 	
-	for (var y = 0; y < GRID_SIZE; y++) {
-		grid[y] = [];
-		for (var x = 0; x < GRID_SIZE; x++) {
-			grid[y][x] = VACANT;
-		}
-	}
-	grid[GRID_SIZE/2][GRID_SIZE/2] = HOUSE;
+	grid.setCellType(GRID_SIZE/2, GRID_SIZE/2, HOUSE);
 	drawGrid();
 	prevTick = Date.now();
     tick();
 });
 
-function forEachCell(callback) {
-	for (var y = 0; y < GRID_SIZE; y++) {
-		for (var x = 0; x < GRID_SIZE; x++) {
-			callback(grid[y][x], x, y);
-		}
-	}
-}
-
 function drawGrid() {
 	for (var y = 0; y < GRID_SIZE; y++) {
 		for (var x = 0; x < GRID_SIZE; x++) {
-			if (grid[y][x] == VACANT) drawSquare(x, y, "brown");
-			else if (grid[y][x] == HOUSE) drawSquare(x, y, "lime");
+			if (grid.getCellType(x, y) == VACANT) drawSquare(x, y, "#80340b");
+			else if (grid.getCellType(x, y) == HOUSE) drawSquare(x, y, "lime");
+			else drawSquare(x, y, "red"); // Error
 		}
 	}
 }
@@ -72,14 +82,13 @@ function tick() {
 }
 
 function spreadHouses() {
-	forEachCell((cell, x, y) => {
-		if (cell == HOUSE && Math.random() > .8) {
+	grid.forEachCell((cell, x, y) => {
+		if (cell.type == HOUSE && Math.random() > .9) {
 			var newX = x + Math.round(Math.pow((Math.random()-0.5)*2, 5)*MAX_SPREAD_DISTANCE);
 			var newY = y + Math.round(Math.pow((Math.random()-0.5)*2, 5)*MAX_SPREAD_DISTANCE);
 			//console.log(newY, newX);
-			if (newX >= 0 && newY >= 0 && newX < GRID_SIZE && newY < GRID_SIZE && grid[newY][newX] == VACANT) {
-				grid[newY][newX] = HOUSE;
-				//drawSquare(newX, newY, "lime");
+			if (newX >= 0 && newY >= 0 && newX < GRID_SIZE && newY < GRID_SIZE && grid.getCellType(newX, newY) == VACANT) {
+				grid.setCellType(newX, newY, HOUSE);
 			}
 		}
 	});
