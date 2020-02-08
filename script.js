@@ -74,6 +74,7 @@ function clickCell(x, y) {
 	if (placingPole !== false) {
 		grid.cells[placingPole[1]][placingPole[0]].poles.push([x, y]);
 		placingPole = false;
+		drawGrid();
 	}
 	else if (type == VACANT) {
 		grid.setCellType(x, y, GENERATOR);
@@ -99,10 +100,27 @@ function drawGrid() {
 			drawSquare(x, y, BUILDING_COLORS[grid.getCellType(x, y)]);
 		}
 	}
+	for (var y = 0; y < GRID_SIZE; y++) {
+		for (var x = 0; x < GRID_SIZE; x++) {
+			if("poles" in grid.cells[y][x]){
+				for(var i=0; i < grid.cells[y][x].poles.length; i++){
+				
+				ctx.beginPath();
+				ctx.lineWidth = "5";
+				ctx.strokeStyle = "green";
+				ctx.moveTo(((CELL_SIZE*x)+(CELL_SIZE/2)), ((CELL_SIZE*y)+(CELL_SIZE/2)));
+				ctx.lineTo(((CELL_SIZE*grid.cells[y][x].poles[i][0])+(CELL_SIZE/2)), ((CELL_SIZE*grid.cells[y][x].poles[i][1])+(CELL_SIZE/2)));
+				ctx.stroke();
+				}
+			}
+		}
+	}
 }
 
 function drawSquare(x, y, color) {
 	ctx.fillStyle = color;
+	ctx.strokeStyle = "black";
+	ctx.lineWidth = "1";
 	ctx.fillRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
 	ctx.strokeRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
 }
