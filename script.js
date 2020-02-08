@@ -12,6 +12,7 @@ var ctx;
 // Building types
 const VACANT = 0;
 const HOUSE = 1;
+const GENERATOR = 2;
 
 // Random generation
 const MAX_SPREAD_DISTANCE = 10;
@@ -50,6 +51,10 @@ window.addEventListener("DOMContentLoaded", (event) => {
 	canvas.style.width = GRID_SIZE*CELL_SIZE/pixelRatio + "px";
 	canvas.style.height = GRID_SIZE*CELL_SIZE/pixelRatio + "px";
 	//ctx.scale(1, 1);
+	
+	canvas.addEventListener("click", (event) => {
+		console.log(event);
+	});
 	
 	grid.setCellType(GRID_SIZE/2, GRID_SIZE/2, HOUSE);
 	drawGrid();
