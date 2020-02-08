@@ -13,27 +13,32 @@ var ctx;
 const VACANT = 0;
 const HOUSE = 1;
 const GENERATOR = 2;
+const BUILDING_NAMES = ["Empty lot", "House", "Power generator"];
+const BUILDING_COLORS = ["#80340b", "lime", "gray"];
 
 // Random generation
 const MAX_SPREAD_DISTANCE = 10;
 
+// Interaction
+var placingPole = false;
+
 var grid = {
-	array: [],
+	cells: [],
 	init: () => {
 		for (var y = 0; y < GRID_SIZE; y++) {
-			grid.array[y] = []
+			grid.cells[y] = []
 			for (var x = 0; x < GRID_SIZE; x++) {
-				grid.array[y][x] = {type: VACANT};
+				grid.cells[y][x] = {type: VACANT};
 			}
 		}
 		
 	},
-	getCellType: (x, y) => grid.array[y][x].type,
-	setCellType: (x, y, val) => { grid.array[y][x].type = val; },
+	getCellType: (x, y) => grid.cells[y][x].type,
+	setCellType: (x, y, val) => { grid.cells[y][x].type = val; },
 	forEachCell: callback => {
 		for (var y = 0; y < GRID_SIZE; y++) {
 			for (var x = 0; x < GRID_SIZE; x++) {
-				callback(grid.array[y][x], x, y);
+				callback(grid.cells[y][x], x, y);
 			}
 		}
 	},
@@ -53,11 +58,9 @@ window.addEventListener("DOMContentLoaded", (event) => {
 	//ctx.scale(1, 1);
 	
 	canvas.addEventListener("click", (event) => {
-		var x = Math.floor(pixelRatio*event.offsetX/16);
-		var y = Math.floor(pixelRatio*event.offsetY/16);
-		grid.setCellType(x,y,GENERATOR);
-		drawGrid();
-	
+		var x = Math.floor(pixelRatio*event.offsetX/CELL_SIZE);
+		var y = Math.floor(pixelRatio*event.offsetY/CELL_SIZE);
+		clickCell(x, y);	
 	});
 	
 	grid.setCellType(GRID_SIZE/2, GRID_SIZE/2, HOUSE);
@@ -66,12 +69,34 @@ window.addEventListener("DOMContentLoaded", (event) => {
     tick();
 });
 
+function clickCell(x, y) {
+	var type = grid.getCellType(x, y);
+	if (placingPole !== false) {
+		grid.cells[placingPole[1]][placingPole[0]].poles.push([x, y]);
+		placingPole = false;
+	}
+	else if (type == VACANT) {
+		grid.setCellType(x, y, GENERATOR);
+		grid.cells[y][x].poles = [];
+		drawGrid();
+	}
+	else {
+		var output = "Building type: " + BUILDING_NAMES[type];
+		if (type == GENERATOR) {
+			output += "<br><input type='button' value='Add power pole' onclick='startPole("+x+", "+y+")'>";
+		}
+		document.getElementById("buidingInfo").innerHTML = output;
+	}
+}
+
+function startPole(x, y) {
+	placingPole = [x, y];
+}
+
 function drawGrid() {
 	for (var y = 0; y < GRID_SIZE; y++) {
 		for (var x = 0; x < GRID_SIZE; x++) {
-			if (grid.getCellType(x, y) == VACANT) drawSquare(x, y, "#80340b");
-			else if (grid.getCellType(x, y) == HOUSE) drawSquare(x, y, "lime");
-			else drawSquare(x, y, "red"); // Error
+			drawSquare(x, y, BUILDING_COLORS[grid.getCellType(x, y)]);
 		}
 	}
 }
