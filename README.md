@@ -1,2 +1,2 @@
 # V-IR
-Electric grid city simulation game
+Electric grid city simulation game for fun! :)
