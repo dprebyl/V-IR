@@ -135,6 +135,7 @@ function startPole(x, y) {
 }
 
 function drawGrid() {
+	var start = Date.now();
 	for (var y = 0; y < GRID_SIZE; y++) {
 		for (var x = 0; x < GRID_SIZE; x++) {
 			drawSquare(x, y, BUILDING_COLORS[grid.getCellType(x, y)]);
@@ -155,6 +156,7 @@ function drawGrid() {
 			}
 		}
 	}
+	console.log("Draw took " + (Date.now()-start) + "ms");
 }
 
 function drawSquare(x, y, color) {

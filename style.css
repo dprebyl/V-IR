@@ -28,7 +28,7 @@ h1 {
 }
 
 #center-col {
-	width: 60vw;
+	width: 80vw;/*60vw;*/
 	background: blue;
 	overflow: scroll;
 }
