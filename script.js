@@ -3,8 +3,8 @@ var gameTime = 0; // Incremental counter of seconds of game time passed
 var gameRate = 1; // How many game second pass per real second (can be changed by user)
 
 // Board layout
-const GRID_SIZE = 100;
-const CELL_SIZE = 16;
+const GRID_SIZE = 60;
+const CELL_SIZE = 24;
 var grid = [];
 var canvas;
 var ctx;
@@ -17,6 +17,7 @@ const SUBSTATION = 3;
 
 const BUILDING_NAMES = ["Empty lot", "House", "Power generator", "Power substation"];
 const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
+const POWER_CAPS = [0, 10, 1000, 100];
 
 // Random generation
 const MAX_SPREAD_DISTANCE = 10;
@@ -30,7 +31,7 @@ var grid = {
 		for (var y = 0; y < GRID_SIZE; y++) {
 			grid.cells[y] = []
 			for (var x = 0; x < GRID_SIZE; x++) {
-				grid.cells[y][x] = {type: VACANT};
+				grid.cells[y][x] = {type: VACANT, powerLevel: 0};
 			}
 		}
 		
@@ -65,7 +66,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
 		clickCell(x, y);	
 	});
 	
-	grid.setCellType(GRID_SIZE/2, GRID_SIZE/2, HOUSE);
+	grid.setCellType(Math.floor(GRID_SIZE/2), Math.floor(GRID_SIZE/2), HOUSE);
 	drawGrid();
 	prevTick = Date.now();
     tick();
@@ -103,6 +104,7 @@ function clickCell(x, y) {
 
 function showBuildingInfo(x, y, type) {
 	var output = "Building type: " + BUILDING_NAMES[type];
+	output += "<br>Power level: " + grid.cells[y][x].powerLevel + "/" + POWER_CAPS[type];
 	if (type == VACANT) {
 		output += "<br><input type='button' value='Add generator' onclick='placeBuilding("+x+", "+y+", "+GENERATOR+")'>";
 		output += "<br><input type='button' value='Add substation' onclick='placeBuilding("+x+", "+y+", "+SUBSTATION+")'>";
@@ -172,7 +174,16 @@ function tick() {
 	gameTime++;
 	document.querySelector("#gameTime").innerText = gameTime;
 	if (Math.random() > .8) spreadHouses();
+	distributeElectricity();
 	setTimeout(tick, (1000-(Date.now()-tickStart))*gameRate);
+}
+
+function distributeElectricity() {
+	// Go to each generator and set power to 1000
+	// Follow each line from the generator and distribute to buildings most in need by % of cap
+	// Calculate resistance during distribution (better for gen->sub, worse for sub->house)
+	// Repeat at substations
+	// Caps: 1000 at gen, 100 at sub, 10 at house
 }
 
 function spreadHouses() {

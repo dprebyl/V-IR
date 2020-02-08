@@ -31,6 +31,7 @@ h1 {
 	width: 80vw;/*60vw;*/
 	background: blue;
 	overflow: scroll;
+	text-align: center;
 }
 
 #right-col {
