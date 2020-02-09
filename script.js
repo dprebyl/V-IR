@@ -15,9 +15,10 @@ const HOUSE = 1;
 const GENERATOR = 2;
 const SUBSTATION = 3;
 
+// Building type data
 const BUILDING_NAMES = ["Empty lot", "House", "Power generator", "Power substation"];
 const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
-const POWER_CAPS = [0, 10, 1000, 100];
+const POWER_CAPS = [0, 120, 50000, 4000];
 const LINE_RESISTANCE = [1, .05, 1, .02];
 const LINE_COLOR = [ "black", "black", "yellow", "orange"];
 const LINE_SIZE = [1, 1, 7, 5];
@@ -27,6 +28,7 @@ const MAX_SPREAD_DISTANCE = 10;
 
 // Interaction
 var placingPole = false;
+var curX = Math.floor(GRID_SIZE/2), curY = Math.floor(GRID_SIZE/2); // Last clicked cell
 
 var grid = {
 	cells: [],
@@ -69,7 +71,9 @@ window.addEventListener("DOMContentLoaded", (event) => {
 		clickCell(x, y);	
 	});
 	
+	// Add first house
 	grid.setCellType(Math.floor(GRID_SIZE/2), Math.floor(GRID_SIZE/2), HOUSE);
+	
 	drawGrid();
 	prevTick = Date.now();
     tick();
@@ -86,6 +90,8 @@ function statusMsg(msg) {
 }
 
 function clickCell(x, y) {
+	curX = x;
+	curY = y;
 	var type = grid.getCellType(x, y);
 	if (placingPole !== false) {
 		if (grid.cells[y][x].type == VACANT) {
@@ -113,7 +119,7 @@ function clickCell(x, y) {
 
 function showBuildingInfo(x, y, type) {
 	var output = "Building type: " + BUILDING_NAMES[type];
-	output += "<br>Power level: " + grid.cells[y][x].powerLevel + "/" + POWER_CAPS[type] + " V";
+	output += "<br>Power level: " + Math.round(grid.cells[y][x].powerLevel) + "/" + POWER_CAPS[type] + " V";
 	if (type == VACANT) {
 		output += "<br><input type='button' value='Add generator' onclick='placeBuilding("+x+", "+y+", "+GENERATOR+")'>";
 		output += "<br><input type='button' value='Add substation' onclick='placeBuilding("+x+", "+y+", "+SUBSTATION+")'>";
@@ -186,20 +192,30 @@ function tick() {
 	
 	setTimeout(tick, (1000-(Date.now()-tickStart))*gameRate);
 	
+	// Consume power
 	grid.forEachCell((cell, x, y) => {
-		if (cell.type == GENERATOR) {
-			cell.powerLevel = POWER_CAPS[GENERATOR];
-			//distributeElectricity(x, y);
+		if (cell.type == HOUSE) {
+			grid.cells[y][x].powerLevel = 0; // Can differ this by time of day
 		}
 	});
+	
+	// Generate and distribute power
+	grid.forEachCell((cell, x, y) => {
+		if (cell.type == GENERATOR) {
+			grid.cells[y][x].powerLevel = POWER_CAPS[GENERATOR];
+			distributeElectricity(x, y);
+		}
+	});
+	
+	showBuildingInfo(curX, curY, grid.getCellType(curX, curY));
 }
 
 function distance(x1, y1, x2, y2){
-	return(Math.sqrt(Math.pow((x1-x2),2) + Math.pow((y1-y2),2)));
+	return Math.sqrt(Math.pow((x1-x2),2) + Math.pow((y1-y2),2));
 }
 
 function resistance(x1, y1, x2, y2){
-	return(distance(x1, y1, x2, y2)*LINE_RESISTANCE[grid.cells[y2][x2]]);
+	return distance(x1, y1, x2, y2)*LINE_RESISTANCE[grid.getCellType(x2, y2)];
 }
 
 function distributeElectricity(x, y) {
@@ -224,7 +240,7 @@ function distributeElectricity(x, y) {
 			var lineResistance = resistance(x, y, lineEnds[i][0], lineEnds[i][1]);
 			
 			// The power cap of the building at the end of the current line
-			var cap = POWER_CAPS[grid.cells[lineEnds[i][0]][lineEnds[i][1]]];
+			var cap = POWER_CAPS[grid.getCellType(lineEnds[i][0], lineEnds[i][1])];
 			
 			// The difference in power level percent between this node and the next node
 			var powerPercentDelta = nextEndPower - grid.getPowerPercent(lineEnds[i][0], lineEnds[i][1]);
@@ -237,9 +253,9 @@ function distributeElectricity(x, y) {
 			
 			// Actually send the power
 			powerLeft -= powerToSend;
-			grid.cells[lineEnds[i][0]][lineEnds[i][1]].powerLevel += powerToSend * (1-lineResistance);
+			grid.cells[lineEnds[i][1]][lineEnds[i][0]].powerLevel += powerToSend * (1-lineResistance);
 
-			console.log(nextEndPower, lineResistance, cap, powerPercentDelta, powerRequired, powerToSend, powerLeft);
+			console.log(powerLeft, powerToSend * (1-lineResistance) );
 		}
 	}
 	
