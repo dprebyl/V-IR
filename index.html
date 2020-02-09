@@ -8,37 +8,30 @@
 	</head>
 	<body>
 		<div id="left-col">
+			<h1>V=IR</h1>
 			<fieldset>
-				<legend>Environment</legend>
+				<legend>World</legend>
 				Time: <span id="gameTime"></span><br>
-				Season: <br>
-				Weather: <br>
+				Rate: <input id="timeScale" type="number" value="1" step="0.1" min="0" max="99"> real/game
+				<input type="button" value="Save" onclick="saveBoard()">
+				<input type="button" value="Load" onclick="loadBoard()">
 			</fieldset>
 			<fieldset>
-				<legend>Building Info</legend>
+				<legend>Building</legend>
 				<div id="buidingInfo"></div>
 			</fieldset>
 			<fieldset>
 				<legend>Status</legend>
 				<div id="status"></div>
 			</fieldset>
+			<fieldset>
+				<legend>Score</legend>
+				Total building cost: $<span id="cost">0</span>k<br>
+				Grid efficiency: <span id="efficiency">100</span>%
+			</fieldset>
+			
 		</div><div id="center-col">
 			<canvas id="board"></canvas>
-		</div><!--div id="right-col">
-			Generation:
-			<ul>
-				<li>Coal</li>
-				<li>Natural Gas</li>
-				<li>Solar</li>
-				<li>Wind</li>
-				<li>Battery</li>
-			</ul>
-			Distribution:
-			<ul>
-				<li>Substation</li>
-				<li>High voltage line</li>
-				<li>Low voltage line</li>
-			</ul>
-		</div-->
+		</div>
 	</body>
 </html>

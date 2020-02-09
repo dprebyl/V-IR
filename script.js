@@ -18,8 +18,9 @@ const SUBSTATION = 3;
 // Building type data
 const BUILDING_NAMES = ["Empty lot", "House", "Power generator", "Power substation"];
 const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
+const BUILDING_COST = [0, 0, 50, 10];
 const POWER_CAPS = [0, 120, 50000, 4000];
-const LINE_RESISTANCE = [1, .05, 1, .02];
+const LINE_RESISTANCE = [1, .05, 1, .01];
 const LINE_COLOR = ["black", "black", "yellow", "orange"];
 const LINE_SIZE = [1, 1, 7, 5];
 
@@ -29,6 +30,10 @@ const MAX_SPREAD_DISTANCE = 10;
 // Interaction
 var placingPole = false;
 var curX = Math.floor(GRID_SIZE/2), curY = Math.floor(GRID_SIZE/2); // Last clicked cell
+
+// Score
+var cost = 0;
+var totalPowerSent = 0, totalPowerReceived = 0; // For efficiency
 
 var grid = {
 	cells: [],
@@ -78,14 +83,14 @@ window.addEventListener("DOMContentLoaded", (event) => {
 	prevTick = Date.now();
     tick();
 	
-	// Testing
-	placeBuilding(0, 0, GENERATOR);
+	// Testing - auto place buildings
+	/*placeBuilding(0, 0, GENERATOR);
 	placeBuilding(2, 2, SUBSTATION);
 	placeBuilding(50, 30, HOUSE);
 	startPole(0, 0);
 	clickCell(2, 2);
 	startPole(2, 2);
-	clickCell(50, 30);
+	clickCell(50, 30);*/
 });
 
 function statusMsg(msg) {
@@ -110,14 +115,13 @@ function clickCell(x, y) {
 			grid.cells[placingPole[1]][placingPole[0]].poles.push([x, y]);
 			placingPole = false;
 			statusMsg("Power pole placed");
-			drawGrid();
 		}
 	}
 	else if (type == VACANT) {
 		grid.cells[y][x].poles = [];
-		drawGrid();
 	}
 	showBuildingInfo(x, y, type);
+	drawGrid();
 }
 
 function showBuildingInfo(x, y, type) {
@@ -196,13 +200,16 @@ function tick() {
 	document.querySelector("#gameTime").innerText = gameTime;
 	if (Math.random() > .8) spreadHouses();
 	
-	setTimeout(tick, (1000-(Date.now()-tickStart))*gameRate);
+	totalPowerSent = 0;
+	totalPowerReceived = 0;
+	cost = 0;
 	
 	// Consume power
 	grid.forEachCell((cell, x, y) => {
 		if (cell.type == HOUSE) {
 			grid.cells[y][x].powerLevel = 0; // Can differ this by time of day
 		}
+		cost += BUILDING_COST[grid.getCellType(x, y)];
 	});
 	
 	// Generate and distribute power
@@ -213,7 +220,14 @@ function tick() {
 		}
 	});
 	
+	// Update displays
 	showBuildingInfo(curX, curY, grid.getCellType(curX, curY));
+	document.getElementById("cost").innerText = cost;
+	document.getElementById("efficiency").innerText = Math.round(totalPowerReceived/totalPowerSent*100);
+	
+	// Delay until time for next tick
+	gameRate = parseFloat(document.getElementById("timeScale").value);
+	setTimeout(tick, (1000-(Date.now()-tickStart))*gameRate);
 }
 
 function distance(x1, y1, x2, y2){
@@ -260,8 +274,11 @@ function distributeElectricity(x, y) {
 			
 			// Actually send the power
 			powerLeft -= powerToSend;
-			grid.cells[lineEnds[i][1]][lineEnds[i][0]].powerLevel += (powerToSend - powerToSend*(lineResistance/(1+lineResistance)));
 
+			var powerToReceive =(powerToSend - powerToSend*(lineResistance/(1+lineResistance)));
+			grid.cells[lineEnds[i][1]][lineEnds[i][0]].powerLevel += powerToReceive;
+			totalPowerSent += powerToSend;
+			totalPowerReceived += powerToReceive;
 			console.log(lineResistance, powerRequired);
 		}
 	}
@@ -288,5 +305,16 @@ function spreadHouses() {
 			}
 		}
 	});
+	drawGrid();
+}
+
+function saveBoard() {
+	localStorage.setItem("cells", JSON.stringify(grid.cells));
+	localStorage.setItem("time", gameTime);
+}
+
+function loadBoard() {
+	grid.cells = JSON.parse(localStorage.getItem("cells"));
+	gameTime = localStorage.getItem("time");
 	drawGrid();
 }
