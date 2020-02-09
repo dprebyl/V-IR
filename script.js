@@ -18,6 +18,7 @@ const SUBSTATION = 3;
 // Building type data
 const BUILDING_NAMES = ["Empty lot", "House", "Power generator", "Power substation"];
 const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
+const BUILDING_EMOJIS = ["", "🏠", "🏭", "⚡"];
 const BUILDING_COST = [0, 0, 50, 10];
 const POWER_CAPS = [0, 120, 50000, 4000];
 const LINE_RESISTANCE = [1, .02, 1, .1];
@@ -160,31 +161,26 @@ function startPole(x, y) {
 }
 
 function drawGrid() {
-	var start = Date.now();
-	for (var y = 0; y < GRID_SIZE; y++) {
-		for (var x = 0; x < GRID_SIZE; x++) {
-			drawSquare(x, y, BUILDING_COLORS[grid.getCellType(x, y)]);
-		}
-	}
-	for (var y = 0; y < GRID_SIZE; y++) {
-		for (var x = 0; x < GRID_SIZE; x++) {
-			if("poles" in grid.cells[y][x]){
-				for(var i=0; i < grid.cells[y][x].poles.length; i++){
-				
+	ctx.font = "20px Arial";
+	grid.forEachCell((cell, x, y) => {
+		drawSquare(x, y, BUILDING_COLORS[cell.type]);
+		ctx.fillText(BUILDING_EMOJIS[cell.type], x*CELL_SIZE, (y+1)*CELL_SIZE-5);
+	});
+	grid.forEachCell((cell, x, y) => {
+		if ("poles" in cell){
+			for(var i = 0; i < cell.poles.length; i++){
 				ctx.beginPath();
 				ctx.lineWidth = LINE_SIZE[grid.getCellType(x, y)];
 				ctx.strokeStyle = LINE_COLOR[grid.getCellType(x, y)];
 				ctx.moveTo(((CELL_SIZE*x)+(CELL_SIZE/2)), ((CELL_SIZE*y)+(CELL_SIZE/2)));
-				ctx.lineTo(((CELL_SIZE*grid.cells[y][x].poles[i][0])+(CELL_SIZE/2)), ((CELL_SIZE*grid.cells[y][x].poles[i][1])+(CELL_SIZE/2)));
+				ctx.lineTo(((CELL_SIZE*cell.poles[i][0])+(CELL_SIZE/2)), ((CELL_SIZE*cell.poles[i][1])+(CELL_SIZE/2)));
 				ctx.stroke();
-				}
 			}
 		}
-	}
+	});
 	ctx.strokeStyle = "red";
 	ctx.lineWidth = "3";
 	ctx.strokeRect(curX*CELL_SIZE, curY*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-	console.log("Draw took " + (Date.now()-start) + "ms");
 }
 
 function drawSquare(x, y, color) {
@@ -296,7 +292,6 @@ function distributeElectricity(x, y) {
 			distributeElectricity(lineEnds[i][0], lineEnds[i][1]);
 		}
 	}
-	
 }
 
 function spreadHouses() {
