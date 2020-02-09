@@ -20,7 +20,7 @@ const BUILDING_NAMES = ["Empty lot", "House", "Power generator", "Power substati
 const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
 const BUILDING_COST = [0, 0, 50, 10];
 const POWER_CAPS = [0, 120, 50000, 4000];
-const LINE_RESISTANCE = [1, .05, 1, .01];
+const LINE_RESISTANCE = [1, .02, 1, .1];
 const LINE_COLOR = ["black", "black", "yellow", "orange"];
 const LINE_SIZE = [1, 1, 7, 5];
 
