@@ -6,16 +6,7 @@ html, body {
 	overflow: hidden;
 }
 
-body {
-	background: black;
-	color: white;
-}
-
-h1 {
-	font-size: 128px;
-}
-
-#left-col, #center-col, #right-col {
+#left-col, #center-col {
 	display: inline-block;
 	height: 100vh;
 	padding: 10px;
@@ -23,20 +14,38 @@ h1 {
 }
 
 #left-col {
+	font-family: sans-serif;
+	font-weight: bold;
+	font-size: 16px;
+	/*-webkit-text-stroke: 0.5px white;*/
 	width: 20vw;
-	background: red;
+	color: black;
+	background: linear-gradient(to bottom, #b4e391 0%,#61c419 100%);
+	border-right: 1px outset #0a0;
 }
 
-#center-col {
-	width: 80vw;/*60vw;*/
-	background: blue;
-	overflow: scroll;
+#left-col h1 {
+	font-family: "Impact";
+	margin: 0;
 	text-align: center;
 }
 
-#right-col {
-	width: 20vw;
-	background: green;
+#left-col fieldset {
+	border-radius: 8px;
+	border-color: #0a0;
+	margin-top: 12px;
+	height: 20vh;
+}
+
+#left-col legend {
+	font-size: 20px;
+}
+
+#center-col {
+	width: 80vw;
+	background: blue;
+	overflow: auto;
+	text-align: center;
 }
 
 #board {
