@@ -307,3 +307,14 @@ function spreadHouses() {
 	});
 	drawGrid();
 }
+
+function saveBoard() {
+	localStorage.setItem("cells", JSON.stringify(grid.cells));
+	localStorage.setItem("time", gameTime);
+}
+
+function loadBoard() {
+	grid.cells = JSON.parse(localStorage.getItem("cells"));
+	gameTime = localStorage.getItem("time");
+	drawGrid();
+}

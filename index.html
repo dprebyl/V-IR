@@ -10,12 +10,14 @@
 		<div id="left-col">
 			<h1>V=IR</h1>
 			<fieldset>
-				<legend>Clock</legend>
+				<legend>World</legend>
 				Time: <span id="gameTime"></span><br>
 				Rate: <input id="timeScale" type="number" value="1" step="0.1" min="0" max="99"> real/game
+				<input type="button" value="Save" onclick="saveBoard()">
+				<input type="button" value="Load" onclick="loadBoard()">
 			</fieldset>
 			<fieldset>
-				<legend>Building Info</legend>
+				<legend>Building</legend>
 				<div id="buidingInfo"></div>
 			</fieldset>
 			<fieldset>
@@ -27,6 +29,7 @@
 				Total building cost: $<span id="cost">0</span>k<br>
 				Grid efficiency: <span id="efficiency">100</span>%
 			</fieldset>
+			
 		</div><div id="center-col">
 			<canvas id="board"></canvas>
 		</div>
