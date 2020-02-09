@@ -21,6 +21,7 @@ const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
 const BUILDING_COST = [0, 0, 50, 10];
 const POWER_CAPS = [0, 120, 50000, 4000];
 const LINE_RESISTANCE = [1, .02, 1, .1];
+const LINE_COST = [0, 1, .2, 0]; // thousand dollars per tile
 const LINE_COLOR = ["black", "black", "yellow", "orange"];
 const LINE_SIZE = [1, 1, 7, 5];
 
@@ -222,7 +223,7 @@ function tick() {
 	
 	// Update displays
 	showBuildingInfo(curX, curY, grid.getCellType(curX, curY));
-	document.getElementById("cost").innerText = cost;
+	document.getElementById("cost").innerText = Math.round(cost);
 	document.getElementById("efficiency").innerText = Math.round(totalPowerReceived/totalPowerSent*100);
 	
 	// Delay until time for next tick
@@ -234,8 +235,8 @@ function distance(x1, y1, x2, y2){
 	return Math.sqrt(Math.pow((x1-x2),2) + Math.pow((y1-y2),2));
 }
 
-function resistance(x1, y1, x2, y2){
-	return distance(x1, y1, x2, y2)*LINE_RESISTANCE[grid.getCellType(x2, y2)];
+function resistance(dist, x2, y2){
+	return dist*LINE_RESISTANCE[grid.getCellType(x2, y2)];
 }
 
 function distributeElectricity(x, y) {
@@ -255,8 +256,11 @@ function distributeElectricity(x, y) {
 		var nextEndPower = (end == lineEnds.length ? 1 : grid.getPowerPercent(lineEnds[end][0], lineEnds[end][1]));
 		
 		for (var i = 0; i < end; i++) {
+			var dist = distance(x, y, lineEnds[i][0], lineEnds[i][1]);
+			cost += dist*LINE_COST[grid.getCellType(lineEnds[i][0], lineEnds[i][1])];
+			
 			// Calculate resistance and give the amount of power required to make powerLevel of i == powerLevel of i+1
-			var lineResistance = resistance(x, y, lineEnds[i][0], lineEnds[i][1]);
+			var lineResistance = resistance(dist, lineEnds[i][0], lineEnds[i][1]);
 			//if (lineResistance >= 1) lineResistance = .999999;
 			
 			// The power cap of the building at the end of the current line
@@ -274,9 +278,10 @@ function distributeElectricity(x, y) {
 			
 			// Actually send the power
 			powerLeft -= powerToSend;
-
 			var powerToReceive =(powerToSend - powerToSend*(lineResistance/(1+lineResistance)));
 			grid.cells[lineEnds[i][1]][lineEnds[i][0]].powerLevel += powerToReceive;
+			
+			// Record totals
 			totalPowerSent += powerToSend;
 			totalPowerReceived += powerToReceive;
 			console.log(lineResistance, powerRequired);
