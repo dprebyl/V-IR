@@ -173,6 +173,9 @@ function drawGrid() {
 			}
 		}
 	}
+	ctx.strokeStyle = "red";
+	ctx.lineWidth = "3";
+	ctx.strokeRect(curX*CELL_SIZE, curY*CELL_SIZE, CELL_SIZE, CELL_SIZE);
 	console.log("Draw took " + (Date.now()-start) + "ms");
 }
 
