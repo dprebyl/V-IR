@@ -41,6 +41,11 @@ html, body {
 	font-size: 20px;
 }
 
+#timeScale {
+	background: rgba(255, 255, 255, 0.5);
+	border-radius: 4px;
+}
+
 #center-col {
 	width: 80vw;
 	background: blue;
@@ -50,4 +55,6 @@ html, body {
 
 #board {
 	cursor: pointer;
+	border: 2px solid black;
+	border-radius: 3px;
 }

@@ -200,8 +200,6 @@ function tick() {
 	document.querySelector("#gameTime").innerText = gameTime;
 	if (Math.random() > .8) spreadHouses();
 	
-	setTimeout(tick, (1000-(Date.now()-tickStart))*gameRate);
-	
 	totalPowerSent = 0;
 	totalPowerReceived = 0;
 	cost = 0;
@@ -222,9 +220,14 @@ function tick() {
 		}
 	});
 	
+	// Update displays
 	showBuildingInfo(curX, curY, grid.getCellType(curX, curY));
 	document.getElementById("cost").innerText = cost;
 	document.getElementById("efficiency").innerText = Math.round(totalPowerReceived/totalPowerSent*100);
+	
+	// Delay until time for next tick
+	gameRate = parseFloat(document.getElementById("timeScale").value);
+	setTimeout(tick, (1000-(Date.now()-tickStart))*gameRate);
 }
 
 function distance(x1, y1, x2, y2){
