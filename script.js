@@ -199,7 +199,7 @@ function tick() {
 	var tickStart = Date.now();
 	gameTime++;
 	document.querySelector("#gameTime").innerText = gameTime;
-	if (Math.random() > .8) spreadHouses();
+	if (Math.random() > .2) spreadHouses();
 	
 	totalPowerSent = 0;
 	totalPowerReceived = 0;
@@ -300,16 +300,21 @@ function distributeElectricity(x, y) {
 }
 
 function spreadHouses() {
-	grid.forEachCell((cell, x, y) => {
-		if (cell.type == HOUSE && Math.random() > .9) {
+	var NUM_ATTEMPTS = Math.max(400-gameTime, 10); // Spread more at the beginning
+	for (var i = 0; i < NUM_ATTEMPTS; i++) {
+		var x = Math.floor(Math.random()*GRID_SIZE);
+		var y = Math.floor(Math.random()*GRID_SIZE);
+
+		if (grid.getCellType(x, y) == HOUSE && Math.random() > .6) {
 			var newX = x + Math.round(Math.pow((Math.random()-0.5)*2, 5)*MAX_SPREAD_DISTANCE);
 			var newY = y + Math.round(Math.pow((Math.random()-0.5)*2, 5)*MAX_SPREAD_DISTANCE);
 			//console.log(newY, newX);
 			if (newX >= 0 && newY >= 0 && newX < GRID_SIZE && newY < GRID_SIZE && grid.getCellType(newX, newY) == VACANT) {
 				grid.setCellType(newX, newY, HOUSE);
+				break; // Only spread at most once per game second
 			}
 		}
-	});
+	}
 	drawGrid();
 }
 
