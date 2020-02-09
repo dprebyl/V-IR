@@ -243,7 +243,7 @@ function distributeElectricity(x, y) {
 		for (var i = 0; i < end; i++) {
 			// Calculate resistance and give the amount of power required to make powerLevel of i == powerLevel of i+1
 			var lineResistance = resistance(x, y, lineEnds[i][0], lineEnds[i][1]);
-			if (lineResistance >= 1) lineResistance = .999999;
+			//if (lineResistance >= 1) lineResistance = .999999;
 			
 			// The power cap of the building at the end of the current line
 			var cap = POWER_CAPS[grid.getCellType(lineEnds[i][0], lineEnds[i][1])];
@@ -252,7 +252,7 @@ function distributeElectricity(x, y) {
 			var powerPercentDelta = nextEndPower - grid.getPowerPercent(lineEnds[i][0], lineEnds[i][1]);
 			
 			// The amount of powerLevel required to increase the percent of the current node to that of the next (including resistance)
-			var powerRequired = powerPercentDelta*cap / (1-lineResistance);
+			var powerRequired = powerPercentDelta*cap*(1 + lineResistance);
 			
 			// Send as much power as we need, up to the max amount we can
 			var powerToSend = Math.min(powerRequired, powerLeft);
@@ -260,7 +260,7 @@ function distributeElectricity(x, y) {
 			
 			// Actually send the power
 			powerLeft -= powerToSend;
-			grid.cells[lineEnds[i][1]][lineEnds[i][0]].powerLevel += powerToSend * (1-lineResistance);
+			grid.cells[lineEnds[i][1]][lineEnds[i][0]].powerLevel += (powerToSend - powerToSend*(lineResistance/(1+lineResistance)));
 
 			console.log(lineResistance, powerRequired);
 		}
