@@ -20,7 +20,7 @@ const BUILDING_NAMES = ["Empty lot", "House", "Power generator", "Power substati
 const BUILDING_COLORS = ["#80340b", "lime", "gray", "aqua"];
 const POWER_CAPS = [0, 120, 50000, 4000];
 const LINE_RESISTANCE = [1, .05, 1, .02];
-const LINE_COLOR = [ "black", "black", "yellow", "orange"];
+const LINE_COLOR = ["black", "black", "yellow", "orange"];
 const LINE_SIZE = [1, 1, 7, 5];
 
 // Random generation
@@ -80,9 +80,12 @@ window.addEventListener("DOMContentLoaded", (event) => {
 	
 	// Testing
 	placeBuilding(0, 0, GENERATOR);
-	placeBuilding(2, 3, HOUSE);
+	placeBuilding(2, 2, SUBSTATION);
+	placeBuilding(50, 30, HOUSE);
 	startPole(0, 0);
-	clickCell(2, 3);
+	clickCell(2, 2);
+	startPole(2, 2);
+	clickCell(50, 30);
 });
 
 function statusMsg(msg) {
@@ -220,8 +223,7 @@ function resistance(x1, y1, x2, y2){
 
 function distributeElectricity(x, y) {
 	// Follow each line from the generator and distribute to buildings most in need by % of cap
-	// Calculate resistance during distribution (better for gen->sub, worse for sub->house)
-	// Repeat at substations
+	// Calculate resistance during distribution, recurse at substations
 	
 	var powerLeft = grid.cells[y][x].powerLevel;
 	
@@ -238,6 +240,7 @@ function distributeElectricity(x, y) {
 		for (var i = 0; i < end; i++) {
 			// Calculate resistance and give the amount of power required to make powerLevel of i == powerLevel of i+1
 			var lineResistance = resistance(x, y, lineEnds[i][0], lineEnds[i][1]);
+			if (lineResistance >= 1) lineResistance = .999999;
 			
 			// The power cap of the building at the end of the current line
 			var cap = POWER_CAPS[grid.getCellType(lineEnds[i][0], lineEnds[i][1])];
@@ -250,16 +253,24 @@ function distributeElectricity(x, y) {
 			
 			// Send as much power as we need, up to the max amount we can
 			var powerToSend = Math.min(powerRequired, powerLeft);
+			if (powerToSend < 0) powerToSend = 0;
 			
 			// Actually send the power
 			powerLeft -= powerToSend;
 			grid.cells[lineEnds[i][1]][lineEnds[i][0]].powerLevel += powerToSend * (1-lineResistance);
 
-			console.log(powerLeft, powerToSend * (1-lineResistance) );
+			console.log(lineResistance, powerRequired);
 		}
 	}
 	
 	grid.cells[y][x].powerLevel = powerLeft;
+	
+	// Recursively run this function on substations
+	for (var i = 0; i < lineEnds.length; i++) {
+		if (grid.getCellType(lineEnds[i][0], lineEnds[i][1]) == SUBSTATION) {
+			distributeElectricity(lineEnds[i][0], lineEnds[i][1]);
+		}
+	}
 	
 }
 
